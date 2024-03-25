@@ -10,6 +10,7 @@ interface CarouselProps {
   delay?: number;
   showDots?: boolean;
   touchEnabled?: boolean;
+  mouseEnabled?: boolean;
   dir?: "ltr" | "rtl";
 }
 
@@ -22,6 +23,7 @@ const Carousel: React.FC<CarouselProps> = ({
   delay = 5000,
   showDots = true,
   touchEnabled = true,
+  mouseEnabled = true,
   dir = "ltr",
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -29,7 +31,7 @@ const Carousel: React.FC<CarouselProps> = ({
   const [touchEnd, setTouchEnd] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
-  const [clicked, setClicked] = useState(false); // حالت برای نشان دادن کلیک کردن بر روی کاروسل
+  const [clicked, setClicked] = useState(false);
 
   useEffect(() => {
     if (ref.current) {
@@ -86,6 +88,17 @@ const Carousel: React.FC<CarouselProps> = ({
         : nextSlide();
   };
 
+  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    setTouchStart(e.clientX);
+  };
+
+  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) =>
+    setTouchEnd(e.clientX);
+
+  const onMouseUp = () => {
+    onTouchEnd();
+  };
+
   return (
     <div
       className={cn("m-[0 auto] overflow-hidden w-full", className)}
@@ -101,9 +114,15 @@ const Carousel: React.FC<CarouselProps> = ({
         onTouchStart={touchEnabled ? onTouchStart : undefined}
         onTouchMove={touchEnabled ? onTouchMove : undefined}
         onTouchEnd={touchEnabled ? onTouchEnd : undefined}
+        onMouseDown={mouseEnabled ? onMouseDown : undefined}
+        onMouseMove={mouseEnabled ? onMouseMove : undefined}
+        onMouseUp={mouseEnabled ? onMouseUp : undefined}
       >
         {React.Children.map(children, (child, index) => (
-          <div className="inline-block px-2 mt-4 h-fit" key={index}>
+          <div
+            className="inline-block px-2 mt-4 h-fit cursor-pointer"
+            key={index}
+          >
             {child}
           </div>
         ))}
