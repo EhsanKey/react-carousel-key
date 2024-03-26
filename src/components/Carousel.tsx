@@ -1,7 +1,6 @@
 "use client";
-
 import { cn } from "@/lib/utils";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 
 interface CarouselProps {
   children: React.ReactNode;
@@ -30,12 +29,12 @@ const Carousel: React.FC<CarouselProps> = ({
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(0);
+  const widthRef = useRef<number>(0);
   const [clicked, setClicked] = useState(false);
 
   useEffect(() => {
     if (ref.current) {
-      setWidth(ref.current.offsetWidth);
+      widthRef.current = ref.current.offsetWidth;
     }
   }, []);
 
@@ -99,6 +98,17 @@ const Carousel: React.FC<CarouselProps> = ({
     onTouchEnd();
   };
 
+  const handleDotClick = (index: number) => {
+    if (!clicked) {
+      setCurrentSlide(index);
+      setClickedWithDelay(true, delay);
+    }
+  };
+
+  const transformedWidth = useMemo(() => {
+    return (isLTR ? -currentSlide : currentSlide) * widthRef.current;
+  }, [currentSlide, isLTR]);
+
   return (
     <div
       className={cn("m-[0 auto] overflow-hidden w-full", className)}
@@ -107,9 +117,7 @@ const Carousel: React.FC<CarouselProps> = ({
       <div
         className="whitespace-nowrap transition-transform ease-linear duration-700"
         style={{
-          transform: `translate3d(${
-            (isLTR ? -currentSlide : currentSlide) * width
-          }px, 0, 0)`,
+          transform: `translate3d(${transformedWidth}px, 0, 0)`,
         }}
         onTouchStart={touchEnabled ? onTouchStart : undefined}
         onTouchMove={touchEnabled ? onTouchMove : undefined}
@@ -132,7 +140,7 @@ const Carousel: React.FC<CarouselProps> = ({
           {React.Children.map(children, (child, index) => (
             <button
               key={index}
-              onClick={() => setCurrentSlide(index)}
+              onClick={() => handleDotClick(index)}
               className={`${
                 index === currentSlide ? "bg-cyan-500" : "bg-[#D9D9D9]"
               } w-2 h-2 rounded-full inline-block mx-1`}
